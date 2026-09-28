@@ -8,33 +8,6 @@ Port experimental de **Need for Speed Shift (Android)** para sistemas Linux ARM3
 
 A versão Android de Need for Speed Shift utiliza a camada/runtime **s3e**. O objetivo deste projeto é fornecer no Linux as interfaces necessárias para executar a imagem do jogo através de um loader próprio.
 
-A arquitetura do port é:
-
-```
-Need for Speed Shift
-        │
-        ▼
-NFSShift.s3e.unpacked
-        │
-        ▼
-nfsshift_s3e_loader
-        │
-        ├── s3e runtime
-        ├── s3e_file
-        ├── s3e_config
-        ├── s3e_input
-        ├── s3e_audio
-        ├── s3e_image
-        ├── s3e_gl
-        └── s3e_host
-        │
-        ▼
-Linux ARM32 / armhf
-        │
-        ▼
-OpenGL ES / SDL
-```
-
 ## Runtime s3e
 
 O loader deste projeto implementa uma camada de compatibilidade para as chamadas necessárias do runtime, permitindo executar a imagem `NFSShift.s3e.unpacked` em um ambiente Linux ARM32.
@@ -104,26 +77,6 @@ A execução utiliza:
 
 O diretório raiz permite que as chamadas de arquivo encontrem `common.dz`, `gfx.dz` e os demais recursos sem depender de caminhos absolutos.
 
-## Arquitetura de CPU
-
-O alvo atual é:
-
-- **ARMv7-A**
-- **ARM32**
-- **EABI**
-- **hard-float / armhf**
-- **NEON**
-- **VFPv4**
-
-As flags utilizadas pelo Makefile são:
-
-```
--march=armv7-a
--mfpu=neon-vfpv4
--mfloat-abi=hard
-```
-
-Portanto, o binário gerado não é ARM64/AArch64.
 
 ## Ambiente gráfico
 
@@ -169,17 +122,6 @@ src/s3e_input.c
 
 faz a tradução da entrada do sistema para a API esperada pelo jogo.
 
-## Execução manual para testes
-
-Durante o desenvolvimento, o loader pode ser executado diretamente no diretório do jogo:
-
-```bash
-cd game
-../nfsshift_s3e_loader \\\
-  --run \\\
-  --root "$(pwd)" \\\
-  "$(pwd)/NFSShift.s3e.unpacked"
-```
 
 ## Diagnóstico
 
