@@ -1,12 +1,12 @@
-# Need for Speed Shift — Marmalade / s3e Port
+# Need for Speed Shift — s3e Port
 
-Port experimental de **Need for Speed Shift (Android)** para sistemas Linux ARM32/armhf, com foco em dispositivos portáteis que utilizam **PortMaster**, **NextOS** ou **muOS**.
+Port experimental de **Need for Speed Shift (Android)** para sistemas Linux ARM32/armhf, com foco em dispositivos portáteis executando **muOS**.
 
 > **Estado:** funcional como port/loader em desenvolvimento. O projeto não distribui os arquivos proprietários do jogo.
 
 ## Visão geral
 
-A versão Android de Need for Speed Shift foi construída sobre a **Marmalade SDK**, utilizando a camada/runtime **s3e**. O objetivo deste projeto é reproduzir no Linux as interfaces que o executável Marmalade espera e carregar a imagem do jogo através de um loader próprio.
+A versão Android de Need for Speed Shift utiliza a camada/runtime **s3e**. O objetivo deste projeto é fornecer no Linux as interfaces necessárias para executar a imagem do jogo através de um loader próprio.
 
 A arquitetura do port é:
 
@@ -35,11 +35,7 @@ Linux ARM32 / armhf
 OpenGL ES / SDL
 ```
 
-## Engine utilizada
-
-### Marmalade SDK / s3e
-
-Este jogo **não é um jogo Unity**. A versão Android analisada utiliza o ecossistema **Marmalade**, cujo runtime de aplicação é baseado nas APIs `s3e`.
+## Runtime s3e
 
 O loader deste projeto implementa uma camada de compatibilidade para as chamadas necessárias do runtime, permitindo executar a imagem `NFSShift.s3e.unpacked` em um ambiente Linux ARM32.
 
@@ -51,9 +47,9 @@ Entre as interfaces implementadas no projeto estão:
 - `s3e_audio` — áudio;
 - `s3e_image` — imagens;
 - `s3e_gl` — OpenGL/OpenGL ES;
-- `s3e_runtime` — runtime Marmalade;
+- `s3e_runtime` — runtime;
 - `s3e_host` — integração com o host Linux;
-- `derbh.c` — suporte auxiliar utilizado pelo loader;
+- `derbh.c` — suporte auxiliar utilizado pelo loader.
 
 ## Estrutura do projeto
 
@@ -82,7 +78,6 @@ Entre as interfaces implementadas no projeto estão:
 
 Os arquivos proprietários do jogo devem ser fornecidos pelo usuário a partir da cópia legítima do jogo.
 
-
 ## Loader s3e
 
 O executável principal do port é:
@@ -97,7 +92,7 @@ Ele recebe a imagem:
 NFSShift.s3e.unpacked
 ```
 
-e inicia a aplicação Marmalade através da camada de compatibilidade implementada em `src/`.
+e inicia a aplicação através da camada de compatibilidade implementada em `src/`.
 
 A execução utiliza:
 
@@ -107,8 +102,7 @@ A execução utiliza:
 <NFSShift.s3e.unpacked>
 ```
 
-O diretório raiz é importante porque permite que as chamadas de arquivo do runtime encontrem `common.dz`, `gfx.dz` e os demais recursos sem depender de caminhos absolutos.
-
+O diretório raiz permite que as chamadas de arquivo encontrem `common.dz`, `gfx.dz` e os demais recursos sem depender de caminhos absolutos.
 
 ## Arquitetura de CPU
 
@@ -131,33 +125,9 @@ As flags utilizadas pelo Makefile são:
 
 Portanto, o binário gerado não é ARM64/AArch64.
 
-
-## Verificação do binário
-
-Depois da compilação, recomenda-se verificar:
-
-```bash
-file nfsshift_s3e_loader
-```
-
-e:
-
-```bash
-readelf -h nfsshift_s3e_loader
-```
-
-O resultado esperado é um ELF **32-bit ARM** compatível com ARMv7/armhf.
-
-Também é útil verificar as dependências:
-
-```bash
-readelf -d nfsshift_s3e_loader
-```
-
-
 ## Ambiente gráfico
 
-O port foi preparado para trabalhar com o ambiente gráfico fornecido pelo firmware/PortMaster, sem substituir à força as bibliotecas gráficas do sistema.
+O port utiliza o ambiente gráfico disponibilizado pelo sistema **muOS**, sem substituir à força as bibliotecas gráficas do sistema.
 
 Os valores padrão utilizados pelo launcher são:
 
@@ -175,7 +145,7 @@ LIBGL_FB=1
 
 Esses valores podem ser sobrescritos pelo ambiente antes da execução.
 
-A intenção é preservar a configuração gráfica do firmware sempre que possível, evitando carregar bibliotecas externas incompatíveis.
+A intenção é preservar a configuração gráfica do muOS sempre que possível.
 
 ## Áudio
 
@@ -185,9 +155,9 @@ A camada:
 src/s3e_audio.c
 ```
 
-é responsável pela compatibilidade das chamadas de áudio esperadas pelo runtime Marmalade.
+é responsável pela compatibilidade das chamadas de áudio esperadas pelo runtime.
 
-O launcher não força uma implementação de áudio específica do dispositivo. Dessa forma, o port pode utilizar o ambiente de áudio disponibilizado pelo firmware/PortMaster.
+O launcher não força uma implementação de áudio específica, permitindo utilizar o ambiente de áudio disponibilizado pelo **muOS**.
 
 ## Controles
 
@@ -199,21 +169,17 @@ src/s3e_input.c
 
 faz a tradução da entrada do sistema para a API esperada pelo jogo.
 
-A camada de entrada faz a tradução dos controles do sistema para a API esperada pelo jogo.
-
 ## Execução manual para testes
 
 Durante o desenvolvimento, o loader pode ser executado diretamente no diretório do jogo:
 
 ```bash
 cd game
-../nfsshift_s3e_loader \\
-  --run \\
-  --root "$(pwd)" \\
+../nfsshift_s3e_loader \\\
+  --run \\\
+  --root "$(pwd)" \\\
   "$(pwd)/NFSShift.s3e.unpacked"
 ```
-
-Isso é útil para testes isolados do loader.
 
 ## Diagnóstico
 
@@ -225,7 +191,6 @@ Verifique:
 ls -l nfsshift_s3e_loader
 chmod +x nfsshift_s3e_loader
 ```
-
 
 ### Verificar arquitetura
 
@@ -243,22 +208,6 @@ ldd nfsshift_s3e_loader
 ```
 
 Em um ambiente ARM diferente do host, `ldd` deve ser executado no próprio dispositivo ou substituído por análise de `readelf -d`.
-
-## Processo de porting
-
-O port foi desenvolvido por etapas:
-
-1. Identificação do runtime Marmalade/s3e utilizado pelo jogo.
-2. Extração e análise da imagem `NFSShift.s3e`.
-3. Preparação de `NFSShift.s3e.unpacked`.
-4. Implementação das APIs s3e necessárias.
-6. Adaptação das operações de arquivo para Linux.
-7. Adaptação de entrada e controles.
-8. Adaptação do áudio.
-9. Adaptação da camada gráfica/OpenGL ES.
-12. Criação do launcher para os ambientes de teste.
-13. Testes no hardware ARM alvo.
-
 
 ## Arquivos proprietários
 
@@ -281,15 +230,15 @@ Os arquivos e marcas pertencentes à Electronic Arts e aos demais detentores dos
 
 ## Créditos técnicos
 
-Projeto focado em engenharia reversa, compatibilidade de runtime e porting de software Marmalade/s3e para Linux ARM32.
+Projeto focado em engenharia reversa e compatibilidade de runtime para Linux ARM32.
 
 Componentes principais:
 
-- Marmalade / s3e — runtime alvo;
+- s3e — runtime alvo;
 - ARMv7-A / armhf — arquitetura do port;
 - OpenGL ES — camada gráfica;
-- - - muOS / NextOS — ambientes de teste;
-- GCC ARM GNU/Linux — cross-compilação.
+- muOS — ambiente de execução/teste;
+- GCC ARM GNU/Linux — ferramenta de compilação.
 
 ## Observação sobre `port.json`
 
@@ -299,6 +248,6 @@ O arquivo `port.json` existente no repositório ainda contém o campo:
 "engine": "Unity"
 ```
 
-Esse valor é inconsistente com a engenharia reversa realizada neste projeto: **Need for Speed Shift utiliza Marmalade/s3e, não Unity**.
+Esse valor é inconsistente com a engenharia reversa realizada neste projeto.
 
-O README documenta a arquitetura efetivamente utilizada pelo port. O campo de metadata pode ser corrigido posteriormente para refletir Marmalade/s3e.
+O README documenta a arquitetura efetivamente utilizada pelo port. O campo de metadata pode ser corrigido posteriormente.
