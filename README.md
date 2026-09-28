@@ -34,32 +34,6 @@ A versão Android de Need for Speed Shift utiliza a camada/runtime **s3e**. O ob
 
 Os arquivos proprietários do jogo devem ser fornecidos pelo usuário a partir da cópia legítima do jogo.
 
-## Loader s3e
-
-O executável principal do port é:
-
-```
-nfsshift_s3e_loader
-```
-
-Ele recebe a imagem:
-
-```
-NFSShift.s3e.unpacked
-```
-
-e inicia a aplicação através da camada de compatibilidade implementada em `src/`.
-
-A execução utiliza:
-
-```text
---run
---root <diretório-do-jogo>
-<NFSShift.s3e.unpacked>
-```
-
-O diretório raiz permite que as chamadas de arquivo encontrem `common.dz`, `gfx.dz` e os demais recursos sem depender de caminhos absolutos.
-
 
 ## Ambiente gráfico
 
@@ -165,14 +139,3 @@ Componentes principais:
 - PortMaster — ambiente de execução compatível;
 - GCC ARM GNU/Linux — ferramenta de compilação.
 
-## Observação sobre `port.json`
-
-O arquivo `port.json` existente no repositório ainda contém o campo:
-
-```json
-"engine": "Unity"
-```
-
-Esse valor é inconsistente com a engenharia reversa realizada neste projeto.
-
-O README documenta a arquitetura efetivamente utilizada pelo port. O campo de metadata pode ser corrigido posteriormente.
