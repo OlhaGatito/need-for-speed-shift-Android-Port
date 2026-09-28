@@ -32,7 +32,7 @@ nfsshift_s3e_loader
 Linux ARM32 / armhf
         │
         ▼
-OpenGL ES / SDL / PortMaster
+OpenGL ES / SDL
 ```
 
 ## Engine utilizada
@@ -54,7 +54,6 @@ Entre as interfaces implementadas no projeto estão:
 - `s3e_runtime` — runtime Marmalade;
 - `s3e_host` — integração com o host Linux;
 - `derbh.c` — suporte auxiliar utilizado pelo loader;
-- `third_party/lzma/LzmaDec.c` — decodificação LZMA.
 
 ## Estrutura do projeto
 
@@ -83,24 +82,6 @@ Entre as interfaces implementadas no projeto estão:
 
 Os arquivos proprietários do jogo devem ser fornecidos pelo usuário a partir da cópia legítima do jogo.
 
-## Arquivos necessários do jogo
-
-O launcher espera a seguinte estrutura:
-
-```
-ports/
-├── nfsshift.sh
-└── nfsshift/
-    ├── nfsshift_s3e_loader
-    ├── run.sh
-    └── game/
-        ├── NFSShift.s3e.unpacked
-        ├── common.dz
-        ├── gfx.dz
-        └── bgm/
-```
-
-Os arquivos `.dz` fazem parte dos dados do jogo e são utilizados pelo runtime durante a execução.
 
 ## Loader s3e
 
@@ -128,17 +109,6 @@ A execução utiliza:
 
 O diretório raiz é importante porque permite que as chamadas de arquivo do runtime encontrem `common.dz`, `gfx.dz` e os demais recursos sem depender de caminhos absolutos.
 
-## LZMA / arquivos comprimidos
-
-O projeto inclui o decoder:
-
-```
-third_party/lzma/LzmaDec.c
-```
-
-Ele é compilado diretamente junto ao loader.
-
-A presença dessa implementação é importante para o runtime lidar com dados comprimidos utilizados pelo jogo e/ou pelo formato Marmalade analisado durante o processo de porting.
 
 ## Arquitetura de CPU
 
@@ -161,110 +131,6 @@ As flags utilizadas pelo Makefile são:
 
 Portanto, o binário gerado não é ARM64/AArch64.
 
-## Compilação
-
-O compilador padrão esperado pelo Makefile é:
-
-```
-arm-linux-gnueabihf-gcc
-```
-
-Compilação simples:
-
-```bash
-make
-```
-
-Ou especificando explicitamente o cross-compiler:
-
-```bash
-make CC=arm-linux-gnueabihf-gcc
-```
-
-Também é possível apontar para um toolchain específico:
-
-```bash
-make CC=/caminho/para/arm-linux-gnueabihf-gcc
-```
-
-### Flags completas
-
-O Makefile utiliza atualmente:
-
-```
--std=c11
--D_GNU_SOURCE
--Wall
--Iinclude
--Ithird_party
--Ithird_party/lzma
--march=armv7-a
--mfpu=neon-vfpv4
--mfloat-abi=hard
-```
-
-Bibliotecas de sistema:
-
-```
--ldl
--pthread
--lm
-```
-
-## Fontes compilados
-
-O loader é construído a partir de:
-
-```
-src/derbh.c
-src/main.c
-src/s3e_audio.c
-src/s3e_config.c
-src/s3e_file.c
-src/s3e_gl.c
-src/s3e_host.c
-src/s3e_image.c
-src/s3e_input.c
-src/s3e_runtime.c
-third_party/lzma/LzmaDec.c
-```
-
-O comando final é equivalente a:
-
-```bash
-arm-linux-gnueabihf-gcc \
-  -O2 \
-  -std=c11 \
-  -D_GNU_SOURCE \
-  -Wall \
-  -Iinclude \
-  -Ithird_party \
-  -Ithird_party/lzma \
-  -march=armv7-a \
-  -mfpu=neon-vfpv4 \
-  -mfloat-abi=hard \
-  -o nfsshift_s3e_loader \
-  src/derbh.c \
-  src/main.c \
-  src/s3e_audio.c \
-  src/s3e_config.c \
-  src/s3e_file.c \
-  src/s3e_gl.c \
-  src/s3e_host.c \
-  src/s3e_image.c \
-  src/s3e_input.c \
-  src/s3e_runtime.c \
-  third_party/lzma/LzmaDec.c \
-  -ldl -pthread -lm
-```
-
-Depois da compilação o Makefile executa:
-
-```bash
-arm-linux-gnueabihf-strip -s nfsshift_s3e_loader
-```
-
-Isso reduz o tamanho do executável removendo símbolos desnecessários para a execução.
 
 ## Verificação do binário
 
@@ -288,37 +154,6 @@ Também é útil verificar as dependências:
 readelf -d nfsshift_s3e_loader
 ```
 
-## Execução no PortMaster / muOS
-
-O `run.sh` prepara o ambiente para diferentes instalações do PortMaster.
-
-Ele procura o PortMaster em locais como:
-
-```
-/opt/system/Tools/PortMaster
-/opt/tools/PortMaster
-$XDG_DATA_HOME/PortMaster
-/roms/ports/PortMaster
-```
-
-Quando encontrado, o script carrega:
-
-```
-control.txt
-```
-
-e, quando disponível, o módulo específico do firmware:
-
-```
-mod_<CFW_NAME>.txt
-```
-
-O launcher também tenta utilizar:
-
-- `get_controls`;
-- `gptokeyb`;
-- `pm_platform_helper`;
-- `pm_finish`.
 
 ## Ambiente gráfico
 
@@ -364,7 +199,7 @@ src/s3e_input.c
 
 faz a tradução da entrada do sistema para a API esperada pelo jogo.
 
-O launcher detecta `gptokeyb` quando disponível e inicializa o ambiente de controles do PortMaster antes de executar o loader.
+A camada de entrada faz a tradução dos controles do sistema para a API esperada pelo jogo.
 
 ## Execução manual para testes
 
@@ -372,13 +207,13 @@ Durante o desenvolvimento, o loader pode ser executado diretamente no diretório
 
 ```bash
 cd game
-../nfsshift_s3e_loader \
-  --run \
-  --root "$(pwd)" \
+../nfsshift_s3e_loader \\
+  --run \\
+  --root "$(pwd)" \\
   "$(pwd)/NFSShift.s3e.unpacked"
 ```
 
-Isso é útil para separar problemas do loader de problemas do launcher/PortMaster.
+Isso é útil para testes isolados do loader.
 
 ## Diagnóstico
 
@@ -391,15 +226,6 @@ ls -l nfsshift_s3e_loader
 chmod +x nfsshift_s3e_loader
 ```
 
-### Arquivo do jogo não encontrado
-
-Verifique:
-
-```bash
-ls -lh game/NFSShift.s3e.unpacked
-ls -lh game/common.dz
-ls -lh game/gfx.dz
-```
 
 ### Verificar arquitetura
 
@@ -426,27 +252,13 @@ O port foi desenvolvido por etapas:
 2. Extração e análise da imagem `NFSShift.s3e`.
 3. Preparação de `NFSShift.s3e.unpacked`.
 4. Implementação das APIs s3e necessárias.
-5. Inclusão do decoder LZMA.
 6. Adaptação das operações de arquivo para Linux.
 7. Adaptação de entrada e controles.
 8. Adaptação do áudio.
 9. Adaptação da camada gráfica/OpenGL ES.
-10. Cross-compilação para ARMv7 hard-float.
-11. Integração com PortMaster.
-12. Criação do launcher para NextOS/muOS.
+12. Criação do launcher para os ambientes de teste.
 13. Testes no hardware ARM alvo.
 
-## Relação com PortMaster
-
-O projeto não é uma implementação alternativa do PortMaster. O PortMaster é utilizado como camada de integração com o firmware, fornecendo recursos como:
-
-- localização do diretório do port;
-- configuração de controles;
-- helpers de plataforma;
-- ambiente de execução;
-- finalização/restauração do sistema.
-
-O código específico do jogo permanece no loader e nas implementações s3e deste repositório.
 
 ## Arquivos proprietários
 
@@ -476,9 +288,7 @@ Componentes principais:
 - Marmalade / s3e — runtime alvo;
 - ARMv7-A / armhf — arquitetura do port;
 - OpenGL ES — camada gráfica;
-- LZMA SDK decoder — decodificação;
-- PortMaster — integração com firmware;
-- muOS / NextOS — ambientes de teste;
+- - - muOS / NextOS — ambientes de teste;
 - GCC ARM GNU/Linux — cross-compilação.
 
 ## Observação sobre `port.json`
