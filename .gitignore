@@ -1,0 +1,25 @@
+
+# Dados proprietários / game data — NUNCA publicar
+game/
+extracted/
+*.apk
+*.obb
+
+# Backups locais
+*.bak
+*.bak-*
+*.backup
+
+# Logs / dumps
+*.log
+*.dump
+*.core
+
+# Build temporário
+*.o
+*.obj
+build/
+dist/
+
+# Executáveis temporários locais
+/tmp/
