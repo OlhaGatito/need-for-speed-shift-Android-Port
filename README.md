@@ -8,21 +8,6 @@ Port experimental de **Need for Speed Shift (Android)** para sistemas Linux ARM3
 
 A versão Android de Need for Speed Shift utiliza a camada/runtime **s3e**. O objetivo deste projeto é fornecer no Linux as interfaces necessárias para executar a imagem do jogo através de um loader próprio.
 
-## Runtime s3e
-
-O loader deste projeto implementa uma camada de compatibilidade para as chamadas necessárias do runtime, permitindo executar a imagem `NFSShift.s3e.unpacked` em um ambiente Linux ARM32.
-
-Entre as interfaces implementadas no projeto estão:
-
-- `s3e_file` — acesso a arquivos;
-- `s3e_config` — configuração/runtime;
-- `s3e_input` — entrada e controles;
-- `s3e_audio` — áudio;
-- `s3e_image` — imagens;
-- `s3e_gl` — OpenGL/OpenGL ES;
-- `s3e_runtime` — runtime;
-- `s3e_host` — integração com o host Linux;
-- `derbh.c` — suporte auxiliar utilizado pelo loader.
 
 ## Estrutura do projeto
 
