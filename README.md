@@ -29,9 +29,7 @@ A versão Android de Need for Speed Shift utiliza a camada/runtime **s3e**. O ob
 │   ├── s3e_image.c
 │   ├── s3e_input.c
 │   └── s3e_runtime.c
-└── third_party/
-    └── lzma/
-        └── LzmaDec.c
+
 ```
 
 Os arquivos proprietários do jogo devem ser fornecidos pelo usuário a partir da cópia legítima do jogo.
