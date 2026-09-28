@@ -1,6 +1,6 @@
 # Need for Speed Shift — s3e Port
 
-Port experimental de **Need for Speed Shift (Android)** para sistemas Linux ARM32/armhf, com foco em dispositivos portáteis executando **muOS**.
+Port experimental de **Need for Speed Shift (Android)** para sistemas Linux ARM32/armhf compatíveis com **PortMaster**.
 
 > **Estado:** funcional como port/loader em desenvolvimento. O projeto não distribui os arquivos proprietários do jogo.
 
@@ -127,7 +127,7 @@ Portanto, o binário gerado não é ARM64/AArch64.
 
 ## Ambiente gráfico
 
-O port utiliza o ambiente gráfico disponibilizado pelo sistema **muOS**, sem substituir à força as bibliotecas gráficas do sistema.
+O port utiliza o ambiente gráfico disponibilizado pelo sistema, sendo compatível com ambientes que suportam **PortMaster**, sem substituir à força as bibliotecas gráficas do sistema.
 
 Os valores padrão utilizados pelo launcher são:
 
@@ -145,7 +145,7 @@ LIBGL_FB=1
 
 Esses valores podem ser sobrescritos pelo ambiente antes da execução.
 
-A intenção é preservar a configuração gráfica do muOS sempre que possível.
+A intenção é preservar a configuração gráfica do sistema sempre que possível.
 
 ## Áudio
 
@@ -157,7 +157,7 @@ src/s3e_audio.c
 
 é responsável pela compatibilidade das chamadas de áudio esperadas pelo runtime.
 
-O launcher não força uma implementação de áudio específica, permitindo utilizar o ambiente de áudio disponibilizado pelo **muOS**.
+O launcher não força uma implementação de áudio específica, permitindo utilizar o ambiente de áudio disponibilizado pelo sistema.
 
 ## Controles
 
@@ -237,7 +237,7 @@ Componentes principais:
 - s3e — runtime alvo;
 - ARMv7-A / armhf — arquitetura do port;
 - OpenGL ES — camada gráfica;
-- muOS — ambiente de execução/teste;
+- PortMaster — ambiente de execução compatível;
 - GCC ARM GNU/Linux — ferramenta de compilação.
 
 ## Observação sobre `port.json`
