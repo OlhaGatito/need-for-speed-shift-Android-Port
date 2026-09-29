@@ -1,167 +1,68 @@
-SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd -P)" || exit 1
-cd "$SCRIPT_DIR" || exit 1
+#!/bin/bash
+# Need for Speed Shift — internal PortMaster runtime
 
-cat > nfsshift.sh <<'EOF'
-#!/bin/sh
-#
-# Need for Speed Shift — NextOS / PortMaster / muOS
-# Marmalade / s3e
-#
-# Estrutura:
-#
-#   ports/
-#   ├── nfsshift.sh
-#   └── nfsshift/
-#       ├── nfsshift_s3e_loader
-#       ├── run.sh
-#       └── game/
-#           ├── NFSShift.s3e.unpacked
-#           ├── common.dz
-#           ├── gfx.dz
-#           └── bgm/
-#
-# O launcher não depende de caminhos absolutos.
-#
+set +u
 
-set -u
+GAMEDIR="$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd -P)" || exit 1
+cd "$GAMEDIR" || exit 1
 
-# ------------------------------------------------------------
-# PortMaster
-# ------------------------------------------------------------
+LOGDIR="${NFSSHIFT_LOG_DIR:-$GAMEDIR/logs}"
+mkdir -p "$LOGDIR" 2>/dev/null || exit 1
+LOG="${NFSSHIFT_LOG:-$LOGDIR/debug.log}"
+touch "$LOG" 2>/dev/null || LOG="${TMPDIR:-/tmp}/nfsshift-debug.log"
+exec >>"$LOG" 2>&1
 
-CONTROLFOLDER=""
-
-if [ -n "${controlfolder:-}" ] && [ -f "$controlfolder/control.txt" ]; then
-    CONTROLFOLDER="$controlfolder"
-elif [ -f "/opt/system/Tools/PortMaster/control.txt" ]; then
-    CONTROLFOLDER="/opt/system/Tools/PortMaster"
-elif [ -f "/opt/tools/PortMaster/control.txt" ]; then
-    CONTROLFOLDER="/opt/tools/PortMaster"
-elif [ -n "${XDG_DATA_HOME:-}" ] &&
-     [ -f "$XDG_DATA_HOME/PortMaster/control.txt" ]; then
-    CONTROLFOLDER="$XDG_DATA_HOME/PortMaster"
-elif [ -f "/roms/ports/PortMaster/control.txt" ]; then
-    CONTROLFOLDER="/roms/ports/PortMaster"
-fi
-
-if [ -n "$CONTROLFOLDER" ]; then
-    controlfolder="$CONTROLFOLDER"
-    export controlfolder
-
-    # shellcheck disable=SC1090
-    . "$controlfolder/control.txt"
-
-    if [ -f "$controlfolder/mod_${CFW_NAME:-}.txt" ]; then
-        # shellcheck disable=SC1090
-        . "$controlfolder/mod_${CFW_NAME}.txt"
-    fi
-
-    if command -v get_controls >/dev/null 2>&1; then
-        get_controls
-    fi
-fi
-
-# ------------------------------------------------------------
-# Diretório do port
-# ------------------------------------------------------------
-
-if [ -n "${directory:-}" ]; then
-    GAMEDIR="/$directory/ports/nfsshift"
-else
-    # Fallback para execução direta durante desenvolvimento.
-    GAMEDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-fi
-
-# ------------------------------------------------------------
-# Detecção automática de áudio/vídeo/GPU
-# ------------------------------------------------------------
-
-COMPAT="$GAMEDIR/port_compat.sh"
-if [ -f "$COMPAT" ]; then
-    # shellcheck disable=SC1090
-    . "$COMPAT"
-    port_detect_runtime
-else
-    echo "[compat] port_compat.sh não encontrado; mantendo ambiente do sistema"
-fi
-
-if [ ! -d "$GAMEDIR" ]; then
-    echo "NFS Shift: game directory not found:"
-    echo "$GAMEDIR"
-    exit 1
-fi
+echo "=== Need for Speed Shift internal runtime ==="
+echo "GAMEDIR=$GAMEDIR"
+echo "CFW=${CFW_NAME:-unknown}"
+echo "DEVICE=${DEVICE_NAME:-unknown}"
+echo "ARCH=${DEVICE_ARCH:-unknown}"
 
 GAME_DIR="$GAMEDIR/game"
-LOADER="$GAMEDIR/nfsshift_s3e_loader"
 GAME_IMAGE="$GAME_DIR/NFSShift.s3e.unpacked"
+LOADER="$GAMEDIR/nfsshift_s3e_loader"
 
-# ------------------------------------------------------------
-# Validação dos arquivos
-# ------------------------------------------------------------
+[ -f "$LOADER" ] || { echo "[ERROR] loader not found: $LOADER"; exit 1; }
+[ -f "$GAME_IMAGE" ] || { echo "[ERROR] game image not found: $GAME_IMAGE"; exit 1; }
+[ -f "$GAME_DIR/common.dz" ] || { echo "[ERROR] common.dz not found"; exit 1; }
+[ -f "$GAME_DIR/gfx.dz" ] || { echo "[ERROR] gfx.dz not found"; exit 1; }
+chmod +x "$LOADER" 2>/dev/null || true
 
-if [ ! -x "$LOADER" ]; then
-    echo "NFS Shift: loader not found or not executable:"
-    echo "$LOADER"
-    exit 1
-fi
-
-if [ ! -f "$GAME_IMAGE" ]; then
-    echo "NFS Shift: game image not found:"
-    echo "$GAME_IMAGE"
-    exit 1
-fi
-
-if [ ! -f "$GAME_DIR/common.dz" ]; then
-    echo "NFS Shift: common.dz not found."
-    exit 1
-fi
-
-if [ ! -f "$GAME_DIR/gfx.dz" ]; then
-    echo "NFS Shift: gfx.dz not found."
-    exit 1
-fi
-
-# ------------------------------------------------------------
-# Ambiente
-# ------------------------------------------------------------
-
-export PORT_32BIT="Y"
-
-# Nunca carregar preload externo de outro port.
+export PORT_32BIT=Y
 unset LD_PRELOAD 2>/dev/null || true
 
-# Preserva o ambiente existente e somente acrescenta libs
-# específicas do port caso elas existam.
-LIBDIR="$GAMEDIR/libs.armhf"
-
-if [ -d "$LIBDIR" ]; then
-    if [ -n "${LD_LIBRARY_PATH:-}" ]; then
-        export LD_LIBRARY_PATH="$LIBDIR:$LD_LIBRARY_PATH"
-    else
-        export LD_LIBRARY_PATH="$LIBDIR"
-    fi
+if [ -d "$GAMEDIR/libs.armhf" ]; then
+    export LD_LIBRARY_PATH="$GAMEDIR/libs.armhf${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 fi
 
-# ------------------------------------------------------------
-# SDL / OpenGL
-# ------------------------------------------------------------
-
-# Mantemos o ambiente escolhido pelo firmware/PortMaster.
-# Estes valores são apenas defaults compatíveis com o loader.
 export SDL_VIDEO_WIDTH="${SDL_VIDEO_WIDTH:-${DISPLAY_WIDTH:-640}}"
 export SDL_VIDEO_HEIGHT="${SDL_VIDEO_HEIGHT:-${DISPLAY_HEIGHT:-480}}"
+export NFSSHIFT_W="${NFSSHIFT_W:-${DISPLAY_WIDTH:-640}}"
+export NFSSHIFT_H="${NFSSHIFT_H:-${DISPLAY_HEIGHT:-480}}"
 
-export NFSSHIFT_W="${NFSSHIFT_W:-640}"
-export NFSSHIFT_H="${NFSSHIFT_H:-480}"
-
-# Compatibilidade GLES utilizada pelo ambiente NextOS/muOS.
 export LIBGL_ES="${LIBGL_ES:-2}"
 export LIBGL_GL="${LIBGL_GL:-21}"
 export LIBGL_FB="${LIBGL_FB:-1}"
 
-# ------------------------------------------------------------
-# Runtime
-# ------------------------------------------------------------
+export SDL_GAMECONTROLLERCONFIG="${sdl_controllerconfig:-${SDL_GAMECONTROLLERCONFIG:-}}"
+
+echo "--- AUDIO DETECTION ---"
+if [ -d /dev/snd ]; then
+    echo "audio: /dev/snd available"
+    ls -la /dev/snd 2>/dev/null || true
+else
+    echo "audio: /dev/snd unavailable"
+fi
+[ -f /proc/asound/cards ] && cat /proc/asound/cards
+command -v pactl >/dev/null 2>&1 && echo "audio: PulseAudio tools available"
+command -v pw-cli >/dev/null 2>&1 && echo "audio: PipeWire tools available"
+echo "SDL_AUDIODRIVER=${SDL_AUDIODRIVER:-auto}"
+
+echo "--- VIDEO DETECTION ---"
+[ -d /dev/dri ] && ls -la /dev/dri 2>/dev/null || true
+[ -e /dev/fb0 ] && echo "video: framebuffer available"
+[ -e /dev/mali0 ] && echo "video: Mali device available"
+echo "SDL_VIDEODRIVER=${SDL_VIDEODRIVER:-auto}"
 
 if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
     :
@@ -172,92 +73,40 @@ else
     mkdir -p "$XDG_RUNTIME_DIR" 2>/dev/null || true
 fi
 
-# ------------------------------------------------------------
-# Controles
-# ------------------------------------------------------------
-
-if command -v gptokeyb >/dev/null 2>&1; then
-    GPTOKEYB="$(command -v gptokeyb)"
-else
-    GPTOKEYB=""
-fi
-
-# ------------------------------------------------------------
-# pm_platform_helper
-# ------------------------------------------------------------
-
 if command -v pm_platform_helper >/dev/null 2>&1; then
-    pm_platform_helper "$LOADER" 2>/dev/null || true
+    pm_platform_helper "$LOADER" || echo "[WARN] pm_platform_helper returned $?"
 fi
 
-# ------------------------------------------------------------
-# CPU/tasksetter
-# ------------------------------------------------------------
-
-TASKSET=""
-
-if [ -n "${tasksetter:-}" ] && [ -x "$tasksetter" ]; then
-    TASKSET="$tasksetter"
-elif command -v taskset >/dev/null 2>&1; then
-    # Não impomos afinidade; somente disponibilizamos o comando.
-    TASKSET="taskset"
-fi
-
-# ------------------------------------------------------------
-# Diretório de execução
-# ------------------------------------------------------------
-
-cd "$GAME_DIR" || exit 1
-
-# ------------------------------------------------------------
-# Compatibilidade de áudio: não forçar hw:0,0.
-# port_compat.sh já selecionou o backend disponível.
-# ------------------------------------------------------------
-
-echo "[runtime] audio_backend=\${PORT_AUDIO_BACKEND:-unknown}"
-echo "[runtime] video_backend=\${PORT_VIDEO_BACKEND:-unknown}"
-echo "[runtime] gpu_backend=\${PORT_GPU_BACKEND:-unknown}"
-echo "[runtime] SDL_AUDIODRIVER=\${SDL_AUDIODRIVER:-auto}"
-echo "[runtime] SDL_VIDEODRIVER=\${SDL_VIDEODRIVER:-auto}"
-
-# ------------------------------------------------------------
-# Execução
-# ------------------------------------------------------------
-
-EXIT_CODE=0
-
-if [ -n "$GPTOKEYB" ]; then
-    "$GPTOKEYB" "$LOADER" -c \
-        2>/dev/null || true
-fi
-
-if [ -n "$TASKSET" ] && [ "$TASKSET" = "taskset" ]; then
-    "$LOADER" \
-        --run \
-        --root "$GAME_DIR" \
-        "$GAME_IMAGE"
-    EXIT_CODE=$?
+if [ -f "$GAMEDIR/nfsshift.gptk" ] && [ -n "${GPTOKEYB:-}" ]; then
+    "$GPTOKEYB" "$LOADER" -c "$GAMEDIR/nfsshift.gptk" &
+    GPTOKEYB_PID=$!
 else
-    "$LOADER" \
-        --run \
-        --root "$GAME_DIR" \
-        "$GAME_IMAGE"
-    EXIT_CODE=$?
+    GPTOKEYB_PID=""
 fi
 
-# ------------------------------------------------------------
-# Finalização
-# ------------------------------------------------------------
+echo "--- STARTING LOADER ---"
+"$LOADER" --run --root "$GAME_DIR" "$GAME_IMAGE"
+GAME_RC=$?
 
-if [ -n "$GPTOKEYB" ]; then
-    killall gptokeyb 2>/dev/null || true
+echo "Loader exit code: $GAME_RC"
+
+if [ "$GAME_RC" -ne 0 ] && [ "${NFSSHIFT_FALLBACK:-0}" != "1" ] && [ -x "$GAMEDIR/run-fallback.sh" ]; then
+    echo "--- STARTING COMPATIBILITY FALLBACK ---"
+    export NFSSHIFT_FALLBACK=1
+    "$GAMEDIR/run-fallback.sh"
+    GAME_RC=$?
+    echo "Fallback exit code: $GAME_RC"
 fi
 
-if command -v pm_finish >/dev/null 2>&1; then
-    pm_finish
+if [ -n "${GPTOKEYB_PID:-}" ]; then
+    kill "$GPTOKEYB_PID" 2>/dev/null || true
 fi
 
-exit "$EXIT_CODE"
-EOF
+if command -v pidof >/dev/null 2>&1 && [ -n "${ESUDO:-}" ]; then
+    $ESUDO kill -9 "$(pidof gptokeyb)" 2>/dev/null || true
+fi
 
-chmod +x nfsshift.sh
+unset LD_PRELOAD
+unset SDL_GAMECONTROLLERCONFIG
+pm_finish 2>/dev/null || true
+exit "$GAME_RC"
