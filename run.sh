@@ -1,4 +1,5 @@
-cd /mnt/c/Users/Fabricio/Videos/nfsshift
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd -P)" || exit 1
+cd "$SCRIPT_DIR" || exit 1
 
 cat > nfsshift.sh <<'EOF'
 #!/bin/sh
