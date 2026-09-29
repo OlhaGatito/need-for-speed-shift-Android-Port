@@ -71,6 +71,19 @@ else
     GAMEDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 fi
 
+# ------------------------------------------------------------
+# Detecção automática de áudio/vídeo/GPU
+# ------------------------------------------------------------
+
+COMPAT="$GAMEDIR/port_compat.sh"
+if [ -f "$COMPAT" ]; then
+    # shellcheck disable=SC1090
+    . "$COMPAT"
+    port_detect_runtime
+else
+    echo "[compat] port_compat.sh não encontrado; mantendo ambiente do sistema"
+fi
+
 if [ ! -d "$GAMEDIR" ]; then
     echo "NFS Shift: game directory not found:"
     echo "$GAMEDIR"
@@ -134,8 +147,8 @@ fi
 
 # Mantemos o ambiente escolhido pelo firmware/PortMaster.
 # Estes valores são apenas defaults compatíveis com o loader.
-export SDL_VIDEO_WIDTH="${SDL_VIDEO_WIDTH:-640}"
-export SDL_VIDEO_HEIGHT="${SDL_VIDEO_HEIGHT:-480}"
+export SDL_VIDEO_WIDTH="${SDL_VIDEO_WIDTH:-${DISPLAY_WIDTH:-640}}"
+export SDL_VIDEO_HEIGHT="${SDL_VIDEO_HEIGHT:-${DISPLAY_HEIGHT:-480}}"
 
 export NFSSHIFT_W="${NFSSHIFT_W:-640}"
 export NFSSHIFT_H="${NFSSHIFT_H:-480}"
@@ -194,6 +207,17 @@ fi
 # ------------------------------------------------------------
 
 cd "$GAME_DIR" || exit 1
+
+# ------------------------------------------------------------
+# Compatibilidade de áudio: não forçar hw:0,0.
+# port_compat.sh já selecionou o backend disponível.
+# ------------------------------------------------------------
+
+echo "[runtime] audio_backend=\${PORT_AUDIO_BACKEND:-unknown}"
+echo "[runtime] video_backend=\${PORT_VIDEO_BACKEND:-unknown}"
+echo "[runtime] gpu_backend=\${PORT_GPU_BACKEND:-unknown}"
+echo "[runtime] SDL_AUDIODRIVER=\${SDL_AUDIODRIVER:-auto}"
+echo "[runtime] SDL_VIDEODRIVER=\${SDL_VIDEODRIVER:-auto}"
 
 # ------------------------------------------------------------
 # Execução
