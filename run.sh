@@ -23,7 +23,21 @@ GAME_IMAGE="$GAME_DIR/NFSShift.s3e.unpacked"
 LOADER="$GAMEDIR/nfsshift_s3e_loader"
 
 [ -f "$LOADER" ] || { echo "[ERROR] loader not found: $LOADER"; exit 1; }
-[ -f "$GAME_IMAGE" ] || { echo "[ERROR] game image not found: $GAME_IMAGE"; exit 1; }
+
+if [ ! -f "$GAME_IMAGE" ] || [ ! -f "$GAME_DIR/common.dz" ] || [ ! -f "$GAME_DIR/gfx.dz" ]; then
+    GATITO_UI="$GAMEDIR/gatito-extract/run.sh"
+    if [ -x "$GATITO_UI" ]; then
+        echo "[setup] payload incomplete; starting Gatito Extractor UI"
+        bash "$GATITO_UI"
+        EXTRACT_RC=$?
+        [ "$EXTRACT_RC" -eq 0 ] || {
+            echo "[ERROR] Gatito validation/preparation failed with exit code $EXTRACT_RC"
+            exit "$EXTRACT_RC"
+        }
+    fi
+fi
+
+[ -f "$GAME_IMAGE" ] || { echo "[ERROR] game image not found"; exit 1; }
 [ -f "$GAME_DIR/common.dz" ] || { echo "[ERROR] common.dz not found"; exit 1; }
 [ -f "$GAME_DIR/gfx.dz" ] || { echo "[ERROR] gfx.dz not found"; exit 1; }
 chmod +x "$LOADER" 2>/dev/null || true
