@@ -15,4 +15,4 @@ for line in p.stdout:
   print("\033[2J\033[H"+"GATITO EXTRACTOR\n\n"+"["+"█"*int(int(pct)*36/100)+"░"*(36-int(int(pct)*36/100))+f"] {pct}%\n\n{msg}",flush=True)
  else:
   print(line,flush=True)
-raise SystemExit(p.wait())
+rc=p.wait()\nif rc: raise SystemExit(rc)\nunpacked=game/'game'/'NFSShift.s3e.unpacked'\nif not unpacked.is_file():\n print('\\nGATITO EXTRACTOR\\n\\n[100%] Etapa seguinte não concluída\\n\\nNFSShift.s3e foi extraído, mas NFSShift.s3e.unpacked ainda não existe.\\nUm unpacker S3E validado é necessário antes do loader.',flush=True)\n raise SystemExit(73)\nraise SystemExit(0)
