@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "id": "nfsshift-marmalade",
+  "version": "1",
+  "title": "Need for Speed Shift Marmalade",
+  "input": {
+    "search_dirs": [
+      "gamedata",
+      "."
+    ],
+    "extensions": [
+      ".apk",
+      ".apkm",
+      ".apks",
+      ".xapk",
+      ".obb",
+      ".zip"
+    ]
+  },
+  "extract": [
+    {
+      "id": "nfsshift-s3e",
+      "source": {
+        "patterns": [
+          "NFSShift.s3e",
+          "assets/NFSShift.s3e",
+          "**/NFSShift.s3e"
+        ]
+      },
+      "destination": "game/NFSShift.s3e.unpacked"
+    },
+    {
+      "id": "common-dz",
+      "source": {
+        "patterns": [
+          "common.dz",
+          "**/common.dz"
+        ]
+      },
+      "destination": "game/common.dz"
+    },
+    {
+      "id": "gfx-dz",
+      "source": {
+        "patterns": [
+          "gfx.dz",
+          "**/gfx.dz"
+        ]
+      },
+      "destination": "game/gfx.dz"
+    }
+  ],
+  "commit": {
+    "root": "game"
+  }
+}
