@@ -14,14 +14,16 @@ Port experimental da versão Android de **Need for Speed Shift** para Linux ARM3
 | Execução | Linux ARM com ambiente PortMaster compatível |
 | Gráficos | OpenGL ES, usando a configuração oferecida pelo sistema |
 
-## Componentes
+## Mapa dos componentes
 
-- `src/` — loader e camadas S3E para runtime, arquivos, configuração, imagem, gráficos, áudio e controles.
-- `include/` — interfaces e cabeçalhos do projeto.
-- `Makefile` — regras de compilação.
-- `run.sh`, `run-fallback.sh` e `port_compat.sh` — execução e seleção de caminhos de compatibilidade.
-- `Need for Speed Shift.sh` — launcher PortMaster.
-- `nfsshift_s3e_loader` — artefato do loader presente no repositório.
+| Componente | Conteúdo e função |
+|:--|:--|
+| 🧩 **Runtime S3E**<br>`src/` | Loader e camadas para runtime, arquivos, configuração, imagem, gráficos, áudio e controles. |
+| 📎 **Interfaces**<br>`include/` | Cabeçalhos e interfaces do projeto. |
+| 🛠️ **Build**<br>`Makefile` | Regras de compilação. |
+| 🚀 **Execução**<br>`run.sh`<br>`run-fallback.sh`<br>`port_compat.sh` | Scripts de execução e caminhos de compatibilidade. |
+| 🎮 **Launcher**<br>`Need for Speed Shift.sh` | Entrada PortMaster do port. |
+| 📦 **Loader**<br>`nfsshift_s3e_loader` | Artefato do loader presente no repositório. |
 
 ## Configuração gráfica padrão
 
