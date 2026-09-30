@@ -1,141 +1,60 @@
-# Need for Speed Shift — s3e Port
+# Need for Speed Shift — port Android para Linux ARM
 
-Port experimental de **Need for Speed Shift (Android)** para sistemas Linux ARM32/armhf compatíveis com **PortMaster**.
+Port experimental da versão Android de **Need for Speed Shift** para Linux ARM32/armhf, com compatibilidade Marmalade/S3E e integração de launcher para PortMaster.
 
-> **Estado:** funcional como port/loader em desenvolvimento. O projeto não distribui os arquivos proprietários do jogo.
+> **Estado:** em desenvolvimento. O repositório contém loader, camadas de compatibilidade e scripts de execução; isso não significa suporte completo a todas as funções ou dispositivos.
 
 ## Visão geral
 
-A versão Android de Need for Speed Shift utiliza a camada/runtime **s3e**. O objetivo deste projeto é fornecer no Linux as interfaces necessárias para executar a imagem do jogo através de um loader próprio.
+| Item | Alvo registrado |
+|---|---|
+| Jogo de origem | Need for Speed Shift para Android |
+| Runtime | Marmalade S3E |
+| Arquitetura | ARMv7-A / Linux armhf |
+| Execução | Linux ARM com ambiente PortMaster compatível |
+| Gráficos | OpenGL ES, usando a configuração oferecida pelo sistema |
 
+## Componentes
 
-## Estrutura do projeto
+- `src/` — loader e camadas S3E para runtime, arquivos, configuração, imagem, gráficos, áudio e controles.
+- `include/` — interfaces e cabeçalhos do projeto.
+- `Makefile` — regras de compilação.
+- `run.sh`, `run-fallback.sh` e `port_compat.sh` — execução e seleção de caminhos de compatibilidade.
+- `Need for Speed Shift.sh` — launcher PortMaster.
+- `nfsshift_s3e_loader` — artefato do loader presente no repositório.
 
-```
-.
-├── Makefile
-├── run.sh
-├── port.json
-├── nfsshift_s3e_loader
-├── include/
-├── src/
-│   ├── derbh.c
-│   ├── main.c
-│   ├── s3e_audio.c
-│   ├── s3e_config.c
-│   ├── s3e_file.c
-│   ├── s3e_gl.c
-│   ├── s3e_host.c
-│   ├── s3e_image.c
-│   ├── s3e_input.c
-│   └── s3e_runtime.c
+## Configuração gráfica padrão
 
-```
+O launcher define os valores abaixo como ponto de partida. O ambiente pode sobrescrevê-los antes de iniciar o port.
 
-Os arquivos proprietários do jogo devem ser fornecidos pelo usuário a partir da cópia legítima do jogo.
-
-
-## Ambiente gráfico
-
-O port utiliza o ambiente gráfico disponibilizado pelo sistema, sendo compatível com ambientes que suportam **PortMaster**, sem substituir à força as bibliotecas gráficas do sistema.
-
-Os valores padrão utilizados pelo launcher são:
-
-```
+```text
 SDL_VIDEO_WIDTH=640
 SDL_VIDEO_HEIGHT=480
-
 NFSSHIFT_W=640
 NFSSHIFT_H=480
-
 LIBGL_ES=2
 LIBGL_GL=21
 LIBGL_FB=1
 ```
 
-Esses valores podem ser sobrescritos pelo ambiente antes da execução.
+A configuração procura usar a stack gráfica existente no sistema, sem substituir à força as bibliotecas fornecidas pelo CFW.
 
-A intenção é preservar a configuração gráfica do sistema sempre que possível.
+## Diagnóstico do loader
 
-## Áudio
-
-A camada:
-
-```
-src/s3e_audio.c
-```
-
-é responsável pela compatibilidade das chamadas de áudio esperadas pelo runtime.
-
-O launcher não força uma implementação de áudio específica, permitindo utilizar o ambiente de áudio disponibilizado pelo sistema.
-
-## Controles
-
-A camada:
-
-```
-src/s3e_input.c
-```
-
-faz a tradução da entrada do sistema para a API esperada pelo jogo.
-
-
-## Diagnóstico
-
-### Loader não encontrado
-
-Verifique:
+Confira o arquivo e a arquitetura compilada:
 
 ```bash
 ls -l nfsshift_s3e_loader
-chmod +x nfsshift_s3e_loader
-```
-
-### Verificar arquitetura
-
-```bash
 file nfsshift_s3e_loader
 readelf -h nfsshift_s3e_loader
 ```
 
-Se aparecer **AArch64/ARM64**, o binário foi compilado para a arquitetura errada.
+O alvo esperado é ARM32/armhf, não AArch64. Em um dispositivo ARM diferente do computador de desenvolvimento, execute `ldd` no próprio dispositivo ou examine dependências ELF com `readelf -d`.
 
-### Verificar bibliotecas
+## Dados do jogo
 
-```bash
-ldd nfsshift_s3e_loader
-```
+Este repositório não distribui APK, OBB, assets, bibliotecas ou executável proprietário. Os arquivos necessários devem vir da cópia legítima do próprio usuário e permanecer fora deste repositório.
 
-Em um ambiente ARM diferente do host, `ldd` deve ser executado no próprio dispositivo ou substituído por análise de `readelf -d`.
+## Licença e marcas
 
-## Arquivos proprietários
-
-Este repositório não deve distribuir:
-
-- APK original;
-- OBB original;
-- assets proprietários;
-- arquivos de áudio proprietários;
-- texturas proprietárias;
-- executável original do jogo.
-
-O usuário deve obter os arquivos do jogo por meios legítimos.
-
-## Licença
-
-Consulte o arquivo [LICENSE](LICENSE) deste repositório para a licença aplicável ao código publicado.
-
-Os arquivos e marcas pertencentes à Electronic Arts e aos demais detentores dos direitos de Need for Speed Shift não fazem parte da licença do código deste projeto.
-
-## Créditos técnicos
-
-Projeto focado em engenharia reversa e compatibilidade de runtime para Linux ARM32.
-
-Componentes principais:
-
-- s3e — runtime alvo;
-- ARMv7-A / armhf — arquitetura do port;
-- OpenGL ES — camada gráfica;
-- PortMaster — ambiente de execução compatível;
-- GCC ARM GNU/Linux — ferramenta de compilação.
-
+A licença do código publicado está em [LICENSE](LICENSE). Ela não cobre os arquivos ou marcas de Need for Speed Shift nem materiais de seus detentores de direitos.
