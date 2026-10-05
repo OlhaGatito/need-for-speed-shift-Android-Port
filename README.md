@@ -112,8 +112,4 @@ Veja a documentação técnica, incluindo método NextOS, logs, teste QEMU e li�
 Código‑fonte sob **GPL‑2.0‑or‑later** (não cobre os direitos do jogo).  
 Consulte `LICENSE`.
 
----  
-
-### 🎉 Ready to race! 🏁
-
-```
+---
